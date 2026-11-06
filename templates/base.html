@@ -1,0 +1,89 @@
+{% load static core_extras %}<!doctype html>
+<html lang="pt-br">
+<head>
+  {% include "_head.html" %}
+  <title>{% block title %}EFSD · GSD-YS{% endblock %}</title>
+</head>
+<body class="app">
+{% if modo_demo %}<div class="demo-banner">DADOS DE DEMONSTRAÇÃO</div>{% endif %}
+
+<header class="topbar navbar navbar-dark sticky-top px-2 px-lg-3">
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-sm btn-outline-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu" aria-label="Abrir menu">☰</button>
+    <button class="btn btn-sm btn-outline-light d-none d-lg-inline-block" type="button" id="toggle-menu" aria-label="Recolher menu">☰</button>
+    <a class="navbar-brand fw-semibold mb-0" href="{% url 'core:dashboard' %}">EFSD · GSD-YS</a>
+  </div>
+
+  <form class="topbar-busca d-none d-md-flex" method="get" action="{% url 'recruits:recruta_list' %}" role="search">
+    <input class="form-control form-control-sm" type="search" name="q" placeholder="Buscar recruta: nome, nome de guerra ou número" aria-label="Buscar recruta">
+  </form>
+
+  <div class="d-flex align-items-center gap-2 ms-auto">
+    {% if turmas_disponiveis %}
+    <form method="post" action="{% url 'core:selecionar_turma' %}" class="d-none d-sm-block">
+      {% csrf_token %}
+      <select name="turma" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Turma ativa">
+        {% for t in turmas_disponiveis %}
+        <option value="{{ t.pk }}" {% if turma_ativa and t.pk == turma_ativa.pk %}selected{% endif %}>{{ t.nome }}{% if not t.editavel %} (arquivada){% endif %}</option>
+        {% endfor %}
+      </select>
+    </form>
+    {% endif %}
+    <a class="btn btn-sm btn-outline-light position-relative" href="{% url 'notifications:notificacao_list' %}" aria-label="Notificações">
+      🔔{% if notificacoes_pendentes %}<span class="badge text-bg-danger position-absolute top-0 start-100 translate-middle">{{ notificacoes_pendentes }}</span>{% endif %}
+    </a>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" type="button">{{ user.nome_exibicao }}</button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}">Alterar senha</a></li>
+        <li>
+          <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+            <button class="dropdown-item" type="submit">Sair</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<div class="app-shell">
+  <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="menu" aria-label="Menu principal">
+    <div class="offcanvas-header d-lg-none">
+      <h5 class="offcanvas-title">Menu</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#menu"></button>
+    </div>
+    <nav class="offcanvas-body flex-column p-0">
+      {% if turma_ativa %}<div class="sidebar-turma">{{ turma_ativa.nome }}{% if not turma_ativa.editavel %} · somente leitura{% endif %}</div>{% endif %}
+      <ul class="nav flex-column w-100">
+        {% for item in nav_itens %}
+        <li class="nav-item">
+          <a class="nav-link {% if item.ativo %}ativo{% endif %}" href="{{ item.url }}">
+            <span class="nav-ico">{{ item.inicial }}</span><span class="nav-txt">{{ item.rotulo }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="conteudo container-fluid py-3">
+    {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+      {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<nav class="bottom-nav d-lg-none" aria-label="Atalhos">
+  <a href="{% url 'core:dashboard' %}">Dashboard</a>
+  <a href="{% url 'daily_roster:efetivo' %}">Efetivo</a>
+  <a href="{% url 'hospital:ida_list' %}">GSAU-YS</a>
+  <a href="{% url 'notifications:notificacao_list' %}">Alertas{% if notificacoes_pendentes %} ({{ notificacoes_pendentes }}){% endif %}</a>
+</nav>
+
+{% include "_scripts.html" %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

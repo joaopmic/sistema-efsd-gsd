@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">{{ titulo }}</h1>
+{% if aviso %}<div class="alert alert-info">{{ aviso }}</div>{% endif %}
+<form method="post" enctype="multipart/form-data" class="form-estreito" novalidate>
+  {% csrf_token %}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% for campo in form %}
+  <div class="mb-3">
+    {% if campo.field.widget.input_type == "checkbox" %}
+    <div class="form-check">
+      {{ campo }}
+      <label class="form-check-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+    </div>
+    {% else %}
+    <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+    {{ campo }}
+    {% endif %}
+    {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
+    {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+  </div>
+  {% endfor %}
+
+  {% if anexos %}
+  <div class="mb-3">
+    <div class="form-label">Anexos já enviados</div>
+    <ul class="list-unstyled small">
+      {% for a in anexos %}<li><a href="{% url 'core:anexo' a.pk %}" target="_blank" rel="noopener">{{ a.nome_original }}</a> <span class="text-muted">({{ a.tamanho|filesizeformat }})</span></li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" type="submit">Salvar</button>
+    <a class="btn btn-outline-secondary" href="{{ voltar }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

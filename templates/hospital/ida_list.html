@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load core_extras %}
+{% block title %}GSAU-YS{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <h1 class="h4 mb-0">GSAU-YS — idas e retornos</h1>
+  {% if "registrar" in caps and editavel %}
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-danger btn-lg" href="{% url 'hospital:ida_create' %}">Registrar ida</a>
+    <a class="btn btn-success btn-lg" href="{% url 'hospital:retorno_create' %}">Registrar retorno</a>
+  </div>
+  {% endif %}
+</div>
+
+<h2 class="h5">No GSAU-YS agora <span class="badge text-bg-danger">{{ agora|length }}</span></h2>
+{% if agora %}
+<div class="row g-2 mb-4">
+  {% for i in agora %}
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="card border-danger"><div class="card-body p-2">
+      <div class="d-flex justify-content-between">
+        <a class="fw-semibold" href="{% url 'recruits:ficha' i.recruta.pk %}">{{ i.recruta.numero|zero3 }} · {{ i.recruta.nome_guerra }}</a>
+        <span class="badge text-bg-danger">{{ i.tempo_fora_texto }} fora</span>
+      </div>
+      <div class="small text-muted">Saída {{ i.saida|fmt }} · {{ i.motivo }}</div>
+      {% if i.acompanhante %}<div class="small">Acompanhante: {{ i.acompanhante.rotulo_curto }}</div>{% endif %}
+      {% if "registrar" in caps and editavel %}
+      <div class="mt-2 d-flex gap-1">
+        <a class="btn btn-sm btn-success" href="{% url 'hospital:retorno_create' %}?recruta={{ i.recruta.pk }}">Registrar retorno</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'hospital:ida_update' i.pk %}">Editar</a>
+      </div>
+      {% endif %}
+    </div></div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-success">Nenhum recruta no GSAU-YS neste momento.</div>
+{% endif %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+  <h2 class="h5 mb-0">Histórico (últimas 60)</h2>
+  <form method="get" class="d-flex gap-2">
+    <input class="form-control form-control-sm" type="search" name="q" value="{{ q }}" placeholder="Buscar no histórico">
+    <button class="btn btn-sm btn-outline-primary" type="submit">Buscar</button>
+  </form>
+</div>
+<div class="table-responsive mt-2">
+  <table class="table table-sm table-hover align-middle tabela">
+    <thead><tr><th>Recruta</th><th>Saída</th><th>Retorno</th><th>Tempo fora</th><th>Motivo</th><th></th></tr></thead>
+    <tbody>
+    {% for i in historico %}
+      <tr>
+        <td><a href="{% url 'recruits:ficha' i.recruta.pk %}">{{ i.recruta.numero|zero3 }} {{ i.recruta.nome_guerra }}</a></td>
+        <td>{{ i.saida|fmt }}</td><td>{{ i.retornou_em|fmt }}</td><td>{{ i.tempo_fora_texto }}</td><td>{{ i.motivo }}</td>
+        <td class="text-end">{% if "registrar" in caps and editavel %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'hospital:ida_update' i.pk %}">Editar</a>{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="text-muted">Sem registros.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<a class="btn btn-link px-0" href="{% url 'hospital:retorno_list' %}">Ver lista de retornos</a>
+{% endblock %}

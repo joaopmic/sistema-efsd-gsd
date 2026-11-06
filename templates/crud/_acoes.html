@@ -1,0 +1,11 @@
+{% for a in obj.acoes_linha %}
+  {% if a.post %}
+  <form method="post" action="{{ a.url }}" class="d-inline" data-confirm="Confirmar: {{ a.label|lower }}?">
+    {% csrf_token %}<button type="submit" class="btn btn-sm {{ a.classe }}">{{ a.label }}</button>
+  </form>
+  {% else %}
+  <a class="btn btn-sm {{ a.classe }}" href="{{ a.url }}">{{ a.label }}</a>
+  {% endif %}
+{% endfor %}
+{% if pode_editar %}<a class="btn btn-sm btn-outline-primary" href="{% url url_editar obj.pk %}">Editar</a>{% endif %}
+{% if pode_excluir %}<a class="btn btn-sm btn-outline-danger" href="{% url url_excluir obj.pk %}">Excluir</a>{% endif %}

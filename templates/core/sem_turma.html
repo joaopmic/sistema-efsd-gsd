@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Nenhuma turma{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Nenhuma turma disponível</h1>
+<div class="alert alert-info">
+  Todo registro pertence a uma turma. Ainda não há nenhuma turma cadastrada.
+</div>
+{% if "admin" in caps %}
+<a class="btn btn-primary" href="{% url 'core:turma_create' %}">Cadastrar a primeira turma</a>
+{% else %}
+<p>Peça a um administrador do sistema para cadastrar a turma.</p>
+{% endif %}
+{% endblock %}

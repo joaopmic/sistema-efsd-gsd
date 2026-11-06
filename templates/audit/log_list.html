@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load core_extras %}
+{% block title %}Livro de Alterações{% endblock %}
+{% block content %}
+<h1 class="h4 mb-1">Livro de Alterações</h1>
+<p class="text-muted small">Registro imutável de tudo que é criado, alterado, excluído, consultado em dado protegido ou exportado. Não há como editar ou apagar linhas por esta tela nem pelo banco de dados da aplicação.</p>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-12 col-md-3"><input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Registro, usuário ou justificativa"></div>
+  <div class="col-6 col-md-3">
+    <select class="form-select" name="operacao" aria-label="Operação">
+      <option value="">Operação: todas</option>
+      {% for cod, nome in operacoes %}<option value="{{ cod }}" {% if operacao == cod %}selected{% endif %}>{{ nome }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-6 col-md-3"><input class="form-control" type="text" name="modulo" value="{{ modulo }}" placeholder="Módulo (ex.: health.Dispensa)"></div>
+  <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Filtrar</button> <a class="btn btn-link" href="?">Limpar</a></div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-sm align-middle tabela">
+    <thead><tr><th>Quando</th><th>Usuário</th><th>Operação</th><th>Módulo</th><th>Registro</th><th>O que mudou</th></tr></thead>
+    <tbody>
+    {% for l in itens %}
+      <tr>
+        <td class="text-nowrap">{{ l.datahora|fmt }}</td>
+        <td>{{ l.user_nome|default:"—" }}</td>
+        <td>{{ l.get_operacao_display }}</td>
+        <td class="small">{{ l.modulo }}</td>
+        <td>{{ l.registro_repr }}</td>
+        <td class="small text-break">{{ l.resumo }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="text-muted">Nenhum registro.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page.has_other_pages %}
+<nav aria-label="Paginação"><ul class="pagination pagination-sm">
+  {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?{% qs page=page.previous_page_number %}">Anterior</a></li>{% endif %}
+  <li class="page-item disabled"><span class="page-link">Página {{ page.number }} de {{ page.paginator.num_pages }}</span></li>
+  {% if page.has_next %}<li class="page-item"><a class="page-link" href="?{% qs page=page.next_page_number %}">Próxima</a></li>{% endif %}
+</ul></nav>
+{% endif %}
+{% endblock %}

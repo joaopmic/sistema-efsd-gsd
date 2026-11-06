@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">{{ titulo }}</h1>
+<div class="alert alert-warning">
+  Confirma a exclusão de <strong>{{ objeto }}</strong>?<br>
+  <span class="small">O registro sai das listagens, mas é preservado no histórico e no Livro de Alterações.</span>
+</div>
+<form method="post">
+  {% csrf_token %}
+  <button class="btn btn-danger" type="submit">Excluir</button>
+  <a class="btn btn-outline-secondary" href="{{ voltar }}">Cancelar</a>
+</form>
+{% endblock %}

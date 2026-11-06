@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  {% include "_head.html" %}
+  <title>{% block title %}EFSD · GSD-YS{% endblock %}</title>
+</head>
+<body class="login-pagina">
+<main class="login-caixa">
+  <h1 class="h4 text-center mb-1">EFSD · GSD-YS</h1>
+  <p class="text-center text-muted small mb-4">Controle administrativo da tropa</p>
+  {% for m in messages %}
+  <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags|default:'info' }}{% endif %}">{{ m }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+{% include "_scripts.html" %}
+</body>
+</html>

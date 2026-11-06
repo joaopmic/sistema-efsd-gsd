@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Relatórios{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Relatórios e exportações</h1>
+<p class="text-muted">Cada exportação fica registrada no Livro de Alterações. A ficha individual é exportada pela própria ficha do recruta (aba Exportação).</p>
+<div class="row g-3">
+  {% for r in relatorios %}
+  <div class="col-12 col-md-6 col-xl-4">
+    <form class="card h-100" method="get" action="{% url 'reports:relatorio' r.chave %}">
+      <div class="card-body">
+        <h2 class="h6">{{ r.titulo }}</h2>
+        <p class="small text-muted">{{ r.descricao }}</p>
+        {% if r.extra == "data" %}
+        <label class="form-label small">Data</label>
+        <input class="form-control form-control-sm mb-2" type="date" name="data" value="{{ hoje|date:'Y-m-d' }}">
+        {% elif r.extra == "periodo" %}
+        <div class="row g-2 mb-2">
+          <div class="col"><label class="form-label small">De</label><input class="form-control form-control-sm" type="date" name="de"></div>
+          <div class="col"><label class="form-label small">Até</label><input class="form-control form-control-sm" type="date" name="ate" value="{{ hoje|date:'Y-m-d' }}"></div>
+        </div>
+        {% endif %}
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm btn-primary" type="submit" name="formato" value="pdf">PDF</button>
+          <button class="btn btn-sm btn-outline-primary" type="submit" name="formato" value="xlsx">Excel</button>
+          <button class="btn btn-sm btn-outline-primary" type="submit" name="formato" value="docx">Word</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

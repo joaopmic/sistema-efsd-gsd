@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load core_extras %}
+{% block title %}Efetivo diário{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+  <h1 class="h4 mb-0">Efetivo diário</h1>
+  <form method="get" class="d-flex gap-2 align-items-end">
+    <div><label class="form-label small mb-0" for="data">Data</label>
+    <input class="form-control" type="date" id="data" name="data" value="{{ data|date:'Y-m-d' }}"></div>
+    <button class="btn btn-outline-primary" type="submit">Ver</button>
+  </form>
+</div>
+
+<div class="row g-2 mb-3 text-center">
+  <div class="col-4"><div class="mini-total"><b>{{ resumo.total }}</b><span>efetivo</span></div></div>
+  <div class="col-4"><div class="mini-total"><b>{{ resumo.presentes }}</b><span>presentes</span></div></div>
+  <div class="col-4"><div class="mini-total"><b>{{ resumo.ausentes }}</b><span>ausentes</span></div></div>
+</div>
+{% if resumo.por_tipo %}
+<div class="mb-3 d-flex flex-wrap gap-2">
+  {% for tipo, n in resumo.por_tipo %}<span class="badge fs-6" style="background-color: {{ tipo.cor }}">{{ tipo.nome }}: {{ n }}</span>{% endfor %}
+</div>
+{% endif %}
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  {% if pode_gerar %}
+  <form method="post" action="{% url 'daily_roster:gerar' %}">{% csrf_token %}
+    <input type="hidden" name="data" value="{{ data|date:'Y-m-d' }}">
+    <button class="btn btn-primary" type="submit">{% if tem_linhas %}Atualizar{% else %}Gerar{% endif %} efetivo de {{ data|date:"d/m/Y" }}</button>
+  </form>
+  {% endif %}
+  {% if tem_linhas %}
+  <a class="btn btn-outline-secondary" href="{% url 'reports:relatorio' 'efetivo' %}?data={{ data|date:'Y-m-d' }}&formato=pdf">PDF</a>
+  <a class="btn btn-outline-secondary" href="{% url 'reports:relatorio' 'efetivo' %}?data={{ data|date:'Y-m-d' }}&formato=xlsx">Excel</a>
+  <a class="btn btn-outline-secondary" href="{% url 'reports:relatorio' 'efetivo' %}?data={{ data|date:'Y-m-d' }}&formato=docx">Word</a>
+  {% endif %}
+</div>
+
+{% if not tem_linhas %}
+<div class="alert alert-secondary">Ainda não há efetivo montado para {{ data|date:"d/m/Y" }}.{% if data > hoje %} Não é possível gerar o efetivo de datas futuras.{% endif %}</div>
+{% endif %}
+
+{% for nome_pelotao, linhas in pelotoes.items %}
+<h2 class="h5 mt-3">{{ nome_pelotao }}</h2>
+<div class="table-responsive">
+  <table class="table table-sm align-middle tabela">
+    <thead><tr><th>Nº</th><th>Nome de guerra</th><th>Nome</th><th>Grupo</th><th>Situação</th><th>Presente</th><th></th></tr></thead>
+    <tbody>
+    {% for l in linhas %}
+      <tr>
+        <td>{{ l.recruta.numero|zero3 }}</td>
+        <td><a href="{% url 'recruits:ficha' l.recruta.pk %}">{{ l.recruta.nome_guerra }}</a></td>
+        <td>{{ l.recruta.nome_completo }}</td>
+        <td>{{ l.recruta.grupo|default:"—" }}</td>
+        <td><span class="badge" style="background-color: {{ l.tipo_situacao.cor }}">{{ l.tipo_situacao.nome }}</span>{% if l.ajustado %} <span class="badge text-bg-light border" title="Ajustado manualmente">ajustado</span>{% endif %}</td>
+        <td>{% if l.presente %}✔{% else %}—{% endif %}</td>
+        <td class="text-end">{% if pode_ajustar %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'daily_roster:ajustar' l.pk %}">Ajustar</a>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+{% endblock %}

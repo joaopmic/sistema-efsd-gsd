@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Não encontrado{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Página ou registro não encontrado</h1>
+<a class="btn btn-primary" href="{% url 'core:dashboard' %}">Voltar ao Dashboard</a>
+{% endblock %}

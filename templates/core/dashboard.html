@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · {{ turma.nome }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-0">Dashboard</h1>
+    <div class="text-muted small">{{ turma.nome }} · formatura em {{ turma.data_formatura|date:"d/m/Y" }}</div>
+  </div>
+  {% if "registrar" in caps and turma.editavel %}
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-danger" href="{% url 'hospital:ida_create' %}">Registrar ida</a>
+    <a class="btn btn-success" href="{% url 'hospital:retorno_create' %}">Registrar retorno</a>
+    <a class="btn btn-outline-primary" href="{% url 'observations:fato_create' %}">Lançar fato</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-2 g-md-3 mb-4">
+  {% for c in cartoes %}
+  <div class="col-6 col-md-4 col-xl-3">
+    <a class="cartao cartao-{{ c.cor }}" href="{% url c.url %}{{ c.param }}">
+      <span class="cartao-valor">{{ c.valor }}</span>
+      <span class="cartao-titulo">{{ c.titulo }}</span>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="h5">Alertas ativos</h2>
+{% if alertas %}
+<div class="list-group mb-3">
+  {% for n in alertas %}
+  <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <span class="badge {% if n.prioridade == 1 %}text-bg-danger{% elif n.prioridade == 2 %}text-bg-warning{% else %}text-bg-success{% endif %}">{{ n.get_prioridade_display }}</span>
+      <strong class="ms-1">{{ n.categoria }}</strong> — {{ n.mensagem }}
+      {% if n.estado == "RECONHECIDA" %}<span class="badge text-bg-secondary">reconhecida</span>{% endif %}
+    </div>
+    <div class="d-flex gap-1">
+      {% if n.recruta_id %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'recruits:ficha' n.recruta_id %}">Ficha</a>{% endif %}
+      {% if n.estado == "ATIVA" and "registrar" in caps %}
+      <form method="post" action="{% url 'notifications:reconhecer' n.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-primary" type="submit">Reconhecer</button></form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-success">Nenhum alerta ativo.</div>
+{% endif %}
+{% endblock %}

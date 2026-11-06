@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load core_extras %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-0">{{ titulo }}</h1>
+    {% if subtitulo %}<div class="text-muted small">{{ subtitulo }}</div>{% endif %}
+  </div>
+  {% if pode_criar %}<a class="btn btn-primary" href="{{ url_criar }}{% if request.GET.recruta %}?recruta={{ request.GET.recruta }}{% endif %}">Novo</a>{% endif %}
+</div>
+
+{% if busca_ativa or filtros %}
+<form method="get" class="row g-2 mb-3">
+  {% if busca_ativa %}
+  <div class="col-12 col-md-4"><input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Buscar…"></div>
+  {% endif %}
+  {% for f in filtros %}
+  <div class="col-6 col-md-2">
+    <select class="form-select" name="{{ f.param }}" aria-label="{{ f.rotulo }}">
+      <option value="">{{ f.rotulo }}: todos</option>
+      {% for valor_op, rotulo_op in f.opcoes %}
+      <option value="{{ valor_op }}" {% if f.valor == valor_op|stringformat:"s" %}selected{% endif %}>{{ rotulo_op }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endfor %}
+  <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Filtrar</button></div>
+  {% if q or request.GET %}<div class="col-auto"><a class="btn btn-link" href="?">Limpar</a></div>{% endif %}
+</form>
+{% endif %}
+
+{% if itens %}
+<div class="table-responsive d-none d-md-block">
+  <table class="table table-sm table-hover align-middle tabela">
+    <thead>
+      <tr>
+        {% for col in colunas %}<th>{{ col.0 }}</th>{% endfor %}
+        <th class="text-end">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for obj in itens %}
+      <tr>
+        {% for col in colunas %}
+        <td>
+          {% with v=obj|valor:col.1 %}
+          {% if col.2 == "badge" and v %}
+            <span class="badge" style="background-color: {{ v.cor }}">{{ v.nome }}</span>
+          {% elif forloop.first and detalhe_url %}
+            <a href="{% url detalhe_url obj.pk %}">{{ v|fmt }}</a>
+          {% else %}{{ v|fmt }}{% endif %}
+          {% endwith %}
+        </td>
+        {% endfor %}
+        <td class="text-end text-nowrap">{% include "crud/_acoes.html" %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="d-md-none">
+  {% for obj in itens %}
+  <div class="card mb-2"><div class="card-body p-2">
+    {% for col in colunas %}
+    <div class="d-flex justify-content-between gap-2 small">
+      <span class="text-muted">{{ col.0 }}</span>
+      <span class="text-end">
+        {% with v=obj|valor:col.1 %}
+        {% if col.2 == "badge" and v %}<span class="badge" style="background-color: {{ v.cor }}">{{ v.nome }}</span>{% else %}{{ v|fmt }}{% endif %}
+        {% endwith %}
+      </span>
+    </div>
+    {% endfor %}
+    <div class="mt-2 text-end">{% include "crud/_acoes.html" %}</div>
+  </div></div>
+  {% endfor %}
+</div>
+
+{% if page.has_other_pages %}
+<nav aria-label="Paginação"><ul class="pagination pagination-sm">
+  {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?{% qs page=page.previous_page_number %}">Anterior</a></li>{% endif %}
+  <li class="page-item disabled"><span class="page-link">Página {{ page.number }} de {{ page.paginator.num_pages }}</span></li>
+  {% if page.has_next %}<li class="page-item"><a class="page-link" href="?{% qs page=page.next_page_number %}">Próxima</a></li>{% endif %}
+</ul></nav>
+{% endif %}
+{% else %}
+<div class="alert alert-secondary">Nenhum registro encontrado.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load core_extras %}
+{% block title %}Ficha · {{ r.nome_guerra }}{% endblock %}
+{% block content %}
+<div class="ficha-topo d-flex flex-wrap gap-3 align-items-start mb-3">
+  <div class="foto-3x4">
+    {% if r.foto %}<img src="{% url 'recruits:foto' r.pk %}" alt="Foto 3x4 de {{ r.nome_guerra }}">
+    {% else %}<span class="text-muted small">Sem foto</span>{% endif %}
+  </div>
+  <div class="flex-grow-1">
+    <h1 class="h4 mb-1">{{ r.numero|zero3 }} · {{ r.nome_guerra }}</h1>
+    <div class="text-muted">{{ r.nome_completo }}</div>
+    <div class="mt-2">
+      {% if r.situacao_atual %}<span class="badge fs-6" style="background-color: {{ r.situacao_atual.cor }}">{{ r.situacao_atual.nome }}</span>
+      {% else %}<span class="badge fs-6 text-bg-success">No GSD</span>{% endif %}
+      <span class="badge text-bg-light border">{{ r.get_pelotao_display }}</span>
+      {% if r.grupo %}<span class="badge text-bg-light border">Grupo {{ r.grupo }}</span>{% endif %}
+      {% if not r.turma.editavel %}<span class="badge text-bg-secondary">turma arquivada</span>{% endif %}
+    </div>
+    {% if r.situacao_motivo %}<div class="small text-muted mt-1">{{ r.situacao_motivo }}</div>{% endif %}
+  </div>
+  {% if editavel %}
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'recruits:recruta_update' r.pk %}">Editar dados</a>
+    <a class="btn btn-outline-danger btn-sm" href="{% url 'recruits:recruta_delete' r.pk %}">Excluir</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-2 mb-3 text-center">
+  <div class="col-4 col-md-2"><div class="mini-total"><b>{{ totais.idas }}</b><span>idas ao GSAU-YS</span></div></div>
+  <div class="col-4 col-md-2"><div class="mini-total"><b>{{ totais.dias_dispensado }}</b><span>dias dispensado</span></div></div>
+  <div class="col-4 col-md-2"><div class="mini-total"><b>{{ totais.fatos_total }}</b><span>fatos ({{ totais.fatos_positivos }}+ / {{ totais.fatos_negativos }}−)</span></div></div>
+  <div class="col-4 col-md-2"><div class="mini-total"><b>{{ totais.dispensas }}</b><span>dispensas</span></div></div>
+  <div class="col-4 col-md-2"><div class="mini-total"><b>{{ totais.juntas }}</b><span>juntas</span></div></div>
+  <div class="col-4 col-md-2"><div class="mini-total"><b>{{ totais.punicoes }}</b><span>punições</span></div></div>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link {% if aba == 'dados' %}active{% endif %}" href="?aba=dados">Dados</a></li>
+  <li class="nav-item"><a class="nav-link {% if aba == 'historico' %}active{% endif %}" href="?aba=historico">Histórico</a></li>
+  <li class="nav-item"><a class="nav-link {% if aba == 'saude' %}active{% endif %}" href="?aba=saude">Saúde</a></li>
+  <li class="nav-item"><a class="nav-link {% if aba == 'documentos' %}active{% endif %}" href="?aba=documentos">Documentos</a></li>
+  <li class="nav-item"><a class="nav-link {% if aba == 'exportar' %}active{% endif %}" href="?aba=exportar">Exportação</a></li>
+</ul>
+
+{% if aba == "historico" %}
+  {% if timeline %}
+  <ul class="timeline list-unstyled">
+    {% for e in timeline %}
+    <li class="timeline-item">
+      <span class="timeline-ponto bg-{{ e.cor }}"></span>
+      <div class="small text-muted">{{ e.quando|fmt }} · {{ e.tipo }}</div>
+      <div>{{ e.titulo }}</div>
+      {% if e.detalhe %}<div class="small text-muted">{{ e.detalhe }}</div>{% endif %}
+      {% for a in e.anexos %}<a class="small me-2" href="{% url 'core:anexo' a.pk %}" target="_blank" rel="noopener">📎 {{ a.nome_original }}</a>{% endfor %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<div class="alert alert-secondary">Nada registrado para este recruta.</div>{% endif %}
+
+{% elif aba == "saude" %}
+  <div class="alert alert-warning py-2 small">Seção protegida. Cada consulta fica registrada no Livro de Alterações.</div>
+  <dl class="row">
+    <dt class="col-sm-3">Tipo sanguíneo</dt><dd class="col-sm-9">{{ saude.tipo_sanguineo|default:"—" }}</dd>
+    <dt class="col-sm-3">Alergias</dt><dd class="col-sm-9">{{ saude.alergias|default:"—"|linebreaksbr }}</dd>
+    <dt class="col-sm-3">Observações</dt><dd class="col-sm-9">{{ saude.observacoes|default:"—"|linebreaksbr }}</dd>
+  </dl>
+  {% if editavel %}<a class="btn btn-outline-primary btn-sm" href="{% url 'recruits:saude_editar' r.pk %}">Editar dados de saúde</a>{% endif %}
+
+{% elif aba == "documentos" %}
+  <form method="post" action="{% url 'recruits:checklist_salvar' r.pk %}" class="form-estreito">
+    {% csrf_token %}
+    {% for d in documentos %}
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" name="entregue" value="{{ d.codigo }}" id="doc-{{ d.codigo }}" {% if d.entregue %}checked{% endif %} {% if not editavel %}disabled{% endif %}>
+      <label class="form-check-label" for="doc-{{ d.codigo }}">{{ d.nome }}</label>
+    </div>
+    {% endfor %}
+    {% if editavel %}<button class="btn btn-primary btn-sm" type="submit">Salvar checklist</button>{% endif %}
+  </form>
+
+{% elif aba == "exportar" %}
+  <form method="get" action="{% url 'reports:ficha' r.pk %}" class="form-estreito">
+    <p class="mb-2">Escolha o que entra na ficha:</p>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="secoes" value="dados" id="s1" checked><label class="form-check-label" for="s1">Dados e totais</label></div>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="secoes" value="historico" id="s2" checked><label class="form-check-label" for="s2">Histórico</label></div>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="secoes" value="saude" id="s3"><label class="form-check-label" for="s3">Saúde (protegido, fica registrado)</label></div>
+    <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="secoes" value="documentos" id="s4"><label class="form-check-label" for="s4">Checklist de documentos</label></div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" type="submit" name="formato" value="pdf">Baixar PDF</button>
+      <button class="btn btn-outline-primary" type="submit" name="formato" value="docx">Baixar Word</button>
+    </div>
+  </form>
+
+{% else %}
+  <dl class="row ficha-dados">
+    <dt class="col-sm-3">SARAM</dt><dd class="col-sm-9">{{ r.saram|default:"—" }}</dd>
+    <dt class="col-sm-3">CPF</dt><dd class="col-sm-9">{{ r.cpf_formatado|default:"—" }}</dd>
+    <dt class="col-sm-3">Nascimento</dt><dd class="col-sm-9">{{ r.data_nascimento|fmt }}</dd>
+    <dt class="col-sm-3">Telefone</dt><dd class="col-sm-9">{{ r.telefone|default:"—" }}</dd>
+    <dt class="col-sm-3">E-mail</dt><dd class="col-sm-9">{{ r.email_pessoal|default:"—" }}</dd>
+    <dt class="col-sm-3">Pai</dt><dd class="col-sm-9">{{ r.nome_pai|default:"—" }}</dd>
+    <dt class="col-sm-3">Mãe</dt><dd class="col-sm-9">{{ r.nome_mae|default:"—" }}</dd>
+    <dt class="col-sm-3">Telefone do responsável</dt><dd class="col-sm-9">{{ r.telefone_responsavel|default:"—" }}</dd>
+    <dt class="col-sm-3">Endereço</dt><dd class="col-sm-9">{{ r.endereco|default:"—"|linebreaksbr }}</dd>
+  </dl>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Administração{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Administração</h1>
+<div class="list-group form-estreito">
+  <a class="list-group-item list-group-item-action" href="{% url 'accounts:usuario_list' %}">Usuários<br><span class="small text-muted">Criar, editar, desativar e definir graduação e perfil</span></a>
+  <a class="list-group-item list-group-item-action" href="{% url 'core:turma_list' %}">Turmas<br><span class="small text-muted">Cadastrar turmas e arquivar ao formar</span></a>
+  <a class="list-group-item list-group-item-action" href="{% url 'situation:tipo_list' %}">Tipos de situação<br><span class="small text-muted">Nomes, cores, prioridade e se conta como presente</span></a>
+  <a class="list-group-item list-group-item-action" href="{% url 'discipline:tipo_list' %}">Tipos de punição<br><span class="small text-muted">Lista de tipos e fundamentos padrão</span></a>
+  <a class="list-group-item list-group-item-action" href="{% url 'situation:manual_list' %}">Situações manuais<br><span class="small text-muted">Fora do GSD (administrativo) e atividade externa</span></a>
+  <a class="list-group-item list-group-item-action" href="{% url 'core:parametro_list' %}">Parâmetros<br><span class="small text-muted">Limites dos alertas (fatos, junta, horas no GSAU-YS…)</span></a>
+</div>
+{% endblock %}
