@@ -4,7 +4,7 @@ Sistema Django (monólito modular) conforme o documento "Etapa 1 — Análise e 
 
 ## Desenvolvimento (SQLite)
     pip install -r requirements.txt
-    export DJANGO_DEBUG=1
+    set DJANGO_DEBUG=1
     python manage.py makemigrations accounts core audit recruits situation health hospital observations discipline daily_roster handover notifications
     python manage.py migrate
     python manage.py createsuperuser
